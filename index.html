@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción de Nacionalidad</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url(bandera.png) no-repeat center center fixed;
+            background-size: cover;
+            text-align: center;
+            padding: 120px;
+            color: white;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border-radius: 15px;
+            width: 320px;
+            margin: auto;
+            backdrop-filter: blur(5px);
+        }
+
+        input {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            width: 80%;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #9b54c4;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #b780e4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        img {
+            width: 40px;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="inicio" class="container">
+        <h2> Hola</h2>
+        <p>¿Quieres saber la nacionalidad de tu nombre?</p>
+        <button onclick="mostrarApp()">Sí</button>
+        <button onclick="despedida()">No</button>
+    </div>
+
+
+    <div id="app" class="container hidden">
+        <h2> Nacionalidad por nombre</h2>
+
+        <input type="text" id="nombreInput" placeholder="Escribe un nombre">
+        <br>
+        <button onclick="buscar()">Buscar</button>
+
+        <p id="nombre"></p>
+        <p id="pais1"></p>
+        <p id="pais2"></p>
+    </div>
+
+    <div id="bye" class="container hidden">
+        <h2> Adiós</h2>
+        <p>¡Que tengas un buen día!</p>
+    </div>
+
+    <script>
+        function mostrarApp() {
+            document.getElementById("inicio").classList.add("hidden");
+            document.getElementById("app").classList.remove("hidden");
+        }
+
+        function despedida() {
+            document.getElementById("inicio").classList.add("hidden");
+            document.getElementById("bye").classList.remove("hidden");
+        }
+
+        async function getPais(code) {
+            const res = await fetch(`https://restcountries.com/v3.1/alpha/${code}`);
+            const data = await res.json();
+            return data[0];
+        }
+
+        async function buscar() {
+            const nombre = document.getElementById("nombreInput").value;
+
+            const url = `https://api.nationalize.io/?name=${nombre}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            document.getElementById('nombre').textContent = "Nombre: " + data.name;
+
+            if (data.country.length > 0) {
+                const pais1 = await getPais(data.country[0].country_id);
+
+                document.getElementById('pais1').innerHTML =
+                    ` <img src="${pais1.flags.svg}"> ${pais1.name.common} 
+                (${(data.country[0].probability * 100).toFixed(1)}%)`;
+            } else {
+                document.getElementById('pais1').textContent = "Sin datos";
+            }
+
+            if (data.country.length > 1) {
+                const pais2 = await getPais(data.country[1].country_id);
+
+                document.getElementById('pais2').innerHTML =
+                    ` <img src="${pais2.flags.svg}"> ${pais2.name.common} 
+                (${(data.country[1].probability * 100).toFixed(1)}%)`;
+            } else {
+                document.getElementById('pais2').textContent = "";
+            }
+        }
+    </script>
+</body>
+
+</html>
